@@ -1,0 +1,115 @@
+import React from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Star, MapPin, Heart, Eye, ShoppingCart, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+
+export default function FeaturedCrafts({ crafts, onAddToCart, currentUser }) {
+  return (
+    <section>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Featured Masterpieces</h2>
+            <p className="text-gray-600">Exceptional crafts from renowned artisans</p>
+          </div>
+          <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2">
+            <Star className="w-4 h-4 mr-1" />
+            Premium Collection
+          </Badge>
+        </div>
+      </motion.div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {crafts.slice(0, 4).map((craft, index) => (
+          <motion.div
+            key={craft.id}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="group"
+          >
+            <Card className="bg-white/80 backdrop-blur-sm border-orange-100 hover:shadow-2xl transition-all duration-500 overflow-hidden h-full">
+              <div className="relative">
+                {craft.images && craft.images[0] ? (
+                  <div className="aspect-square overflow-hidden">
+                    <img 
+                      src={craft.images[0]} 
+                      alt={craft.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  </div>
+                ) : (
+                  <div className="aspect-square bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center">
+                    <span className="text-6xl opacity-30">🎨</span>
+                  </div>
+                )}
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-pink-50 transition-colors cursor-pointer">
+                  <Heart className="w-4 h-4 text-pink-500" />
+                </div>
+                <div className="absolute bottom-3 left-3">
+                  <Badge className="bg-black/70 text-white border-none">
+                    Featured
+                  </Badge>
+                </div>
+              </div>
+              
+              <CardContent className="p-4">
+                <h3 className="font-bold text-lg text-gray-800 mb-2 line-clamp-2">{craft.title}</h3>
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{craft.description}</p>
+                
+                <div className="flex items-center gap-2 mb-3">
+                  {craft.region_style && (
+                    <Badge variant="outline" className="border-orange-200 text-orange-700">
+                      <MapPin className="w-3 h-3 mr-1" />
+                      {craft.region_style}
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-2xl font-bold text-gray-800">
+                    ₹{craft.price?.toLocaleString('en-IN')}
+                  </div>
+                  <Link to={createPageUrl(`CraftDetail?id=${craft.id}`)}>
+                    <Button size="sm" variant="outline" className="opacity-0 group-hover:opacity-100 transition-opacity border-orange-300 hover:bg-orange-50">
+                      <Eye className="w-3 h-3 mr-1" />
+                      View
+                    </Button>
+                  </Link>
+                </div>
+
+                {currentUser ? (
+                  <Button 
+                    onClick={() => onAddToCart(craft)} 
+                    className="w-full bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 hover:from-pink-600 hover:via-orange-600 hover:to-yellow-600 text-white"
+                    size="sm"
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Add to Cart
+                  </Button>
+                ) : (
+                  <Button 
+                    disabled
+                    className="w-full bg-gray-300 text-gray-500 cursor-not-allowed"
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Login to Purchase
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}

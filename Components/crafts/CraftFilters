@@ -1,0 +1,47 @@
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+export default function CraftFilters({ activeFilter, setActiveFilter, crafts }) {
+  const filters = [
+    { key: "all", label: "All Crafts", count: crafts.length },
+    { key: "available", label: "Available", count: crafts.filter(c => c.is_available).length },
+    { key: "sold", label: "Sold", count: crafts.filter(c => !c.is_available).length },
+    { key: "pottery", label: "Pottery", count: crafts.filter(c => c.craft_type === "pottery").length },
+    { key: "textile_weaving", label: "Textiles", count: crafts.filter(c => c.craft_type === "textile_weaving").length },
+    { key: "jewelry_making", label: "Jewelry", count: crafts.filter(c => c.craft_type === "jewelry_making").length },
+    { key: "wood_carving", label: "Wood", count: crafts.filter(c => c.craft_type === "wood_carving").length }
+  ];
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {filters.map((filter) => (
+        <Button
+          key={filter.key}
+          variant={activeFilter === filter.key ? "default" : "outline"}
+          size="sm"
+          onClick={() => setActiveFilter(filter.key)}
+          className={`${
+            activeFilter === filter.key
+              ? "bg-orange-500 hover:bg-orange-600 text-white"
+              : "border-orange-200 hover:bg-orange-50"
+          }`}
+        >
+          {filter.label}
+          {filter.count > 0 && (
+            <Badge
+              variant="secondary"
+              className={`ml-2 ${
+                activeFilter === filter.key
+                  ? "bg-white/20 text-white"
+                  : "bg-orange-100 text-orange-700"
+              }`}
+            >
+              {filter.count}
+            </Badge>
+          )}
+        </Button>
+      ))}
+    </div>
+  );
+}

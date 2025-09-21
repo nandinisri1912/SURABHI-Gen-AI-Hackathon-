@@ -1,0 +1,69 @@
+{
+  "name": "Artisan",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Artisan's full name"
+    },
+    "craft_tradition": {
+      "type": "string",
+      "enum": [
+        "pottery",
+        "textile_weaving",
+        "jewelry_making",
+        "wood_carving",
+        "metal_work",
+        "painting",
+        "embroidery",
+        "basket_weaving",
+        "leather_work",
+        "stone_carving",
+        "glass_blowing",
+        "other"
+      ],
+      "description": "Primary craft tradition"
+    },
+    "location": {
+      "type": "string",
+      "description": "City and state in India"
+    },
+    "story": {
+      "type": "string",
+      "description": "Personal story and craft heritage"
+    },
+    "experience_years": {
+      "type": "number",
+      "description": "Years of crafting experience"
+    },
+    "speciality": {
+      "type": "string",
+      "description": "What makes their craft unique"
+    },
+    "profile_image": {
+      "type": "string",
+      "description": "Profile photo URL"
+    },
+    "workshop_image": {
+      "type": "string",
+      "description": "Workshop/workspace photo URL"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone number"
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Languages spoken"
+    }
+  },
+  "required": [
+    "name",
+    "craft_tradition",
+    "location",
+    "story"
+  ]
+}

@@ -1,0 +1,222 @@
+import React from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { 
+  Palette, 
+  Scissors, 
+  Gem, 
+  TreePine, 
+  Hammer,
+  Paintbrush,
+  Heart,
+  ShoppingBasket,
+  Shield,
+  Mountain,
+  Sparkles,
+  ShoppingCart,
+  Plus,
+  Eye
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { useLanguage } from "../LanguageProvider";
+
+export default function CraftCategories({ crafts, selectedCategory, onCategoryChange, onAddToCart, currentUser }) {
+  const { t } = useLanguage();
+
+  const categories = [
+    { 
+      id: "pottery", 
+      name: t('pottery') || "Pottery & Ceramics", 
+      icon: Palette, 
+      color: "from-orange-500 to-red-500",
+      count: crafts.filter(c => c.craft_type === "pottery").length
+    },
+    { 
+      id: "textile_weaving", 
+      name: t('textileWeaving') || "Textile Weaving", 
+      icon: Scissors, 
+      color: "from-purple-500 to-pink-500",
+      count: crafts.filter(c => c.craft_type === "textile_weaving").length
+    },
+    { 
+      id: "jewelry_making", 
+      name: t('jewelryMaking') || "Jewelry Making", 
+      icon: Gem, 
+      color: "from-yellow-500 to-orange-500",
+      count: crafts.filter(c => c.craft_type === "jewelry_making").length
+    },
+    { 
+      id: "wood_carving", 
+      name: t('woodCarving') || "Wood Carving", 
+      icon: TreePine, 
+      color: "from-green-500 to-emerald-500",
+      count: crafts.filter(c => c.craft_type === "wood_carving").length
+    },
+    { 
+      id: "metal_work", 
+      name: t('metalWork') || "Metal Work", 
+      icon: Hammer, 
+      color: "from-gray-500 to-slate-600",
+      count: crafts.filter(c => c.craft_type === "metal_work").length
+    },
+    { 
+      id: "painting", 
+      name: t('painting') || "Traditional Painting", 
+      icon: Paintbrush, 
+      color: "from-indigo-500 to-purple-500",
+      count: crafts.filter(c => c.craft_type === "painting").length
+    },
+    { 
+      id: "embroidery", 
+      name: t('embroidery') || "Embroidery", 
+      icon: Heart, 
+      color: "from-pink-500 to-rose-500",
+      count: crafts.filter(c => c.craft_type === "embroidery").length
+    },
+    { 
+      id: "basket_weaving", 
+      name: t('basketWeaving') || "Basket Weaving", 
+      icon: ShoppingBasket, 
+      color: "from-amber-500 to-yellow-500",
+      count: crafts.filter(c => c.craft_type === "basket_weaving").length
+    }
+  ];
+
+  const filteredCrafts = selectedCategory === "all" 
+    ? crafts 
+    : crafts.filter(craft => craft.craft_type === selectedCategory);
+
+  return (
+    <section>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-12"
+      >
+        <h2 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
+          Explore by Craft Category
+        </h2>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          Each craft category represents centuries of tradition and skill, carefully preserved and passed down through generations
+        </p>
+      </motion.div>
+
+      {/* Category Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 mb-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="group cursor-pointer"
+          onClick={() => onCategoryChange("all")}
+        >
+          <Card className={`bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 ${selectedCategory === "all" ? 'ring-2 ring-pink-400 shadow-lg' : ''}`}>
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-800 mb-2">All Crafts</h3>
+              <Badge className="bg-pink-100 text-pink-700">
+                {crafts.length} items
+              </Badge>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {categories.map((category, index) => (
+          <motion.div
+            key={category.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: (index + 1) * 0.1 }}
+            className="group cursor-pointer"
+            onClick={() => onCategoryChange(category.id)}
+          >
+            <Card className={`bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 ${selectedCategory === category.id ? 'ring-2 ring-pink-400 shadow-lg' : ''}`}>
+              <CardContent className="p-6 text-center">
+                <div className={`w-12 h-12 bg-gradient-to-r ${category.color} rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
+                  <category.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-800 mb-2">{category.name}</h3>
+                <Badge variant="outline" className="border-orange-200 text-orange-700">
+                  {category.count} items
+                </Badge>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Featured Crafts from Selected Category */}
+      {filteredCrafts.length > 0 && (
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {filteredCrafts.slice(0, 8).map((craft, index) => (
+            <motion.div
+              key={craft.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="group"
+            >
+              <Card className="bg-white/80 backdrop-blur-sm border-orange-100 hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <div className="relative">
+                  {craft.images && craft.images[0] ? (
+                    <div className="aspect-square overflow-hidden">
+                      <img 
+                        src={craft.images[0]} 
+                        alt={craft.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-square bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center">
+                      <Palette className="w-16 h-16 text-orange-300" />
+                    </div>
+                  )}
+                  <div className="absolute bottom-3 left-3">
+                    <Badge className="bg-black/70 text-white border-none">
+                      ₹{craft.price?.toLocaleString('en-IN')}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <CardContent className="p-4 space-y-3">
+                  <h3 className="font-bold text-lg text-gray-800 mb-2 line-clamp-2">{craft.title}</h3>
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{craft.description}</p>
+                  
+                  <div className="flex gap-2">
+                    <Link to={createPageUrl(`CraftDetail?id=${craft.id}`)}>
+                      <Button size="sm" variant="outline" className="border-orange-300 hover:bg-orange-50 flex-1">
+                        <Eye className="w-3 h-3 mr-1" />
+                        View Details
+                      </Button>
+                    </Link>
+                    {currentUser ? (
+                      <Button 
+                        size="sm"
+                        onClick={() => onAddToCart(craft)}
+                        className="bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white"
+                      >
+                        <ShoppingCart className="w-3 h-3" />
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="sm"
+                        disabled
+                        className="bg-gray-300 text-gray-500 cursor-not-allowed"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}

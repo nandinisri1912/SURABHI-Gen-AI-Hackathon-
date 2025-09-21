@@ -1,0 +1,162 @@
+import React, { useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { 
+  CheckCircle, 
+  Package, 
+  Truck, 
+  Star, 
+  ArrowRight,
+  Home,
+  ShoppingCart
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+
+export default function OrderSuccess() {
+  useEffect(() => {
+    // Add confetti effect or celebration animation here if needed
+  }, []);
+
+  const orderNumber = `SRB${Date.now()}`;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center p-6">
+      <div className="max-w-2xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <Card className="bg-white/90 backdrop-blur-sm border-orange-100 shadow-2xl overflow-hidden">
+            <CardContent className="p-8 lg:p-12">
+              {/* Success Icon */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6"
+              >
+                <CheckCircle className="w-12 h-12 text-white" />
+              </motion.div>
+
+              {/* Main Message */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mb-8"
+              >
+                <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
+                  Order Placed Successfully! 🎉
+                </h1>
+                <p className="text-xl text-gray-600 mb-6">
+                  Thank you for supporting India's traditional artisans
+                </p>
+                <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-xl p-4 border border-pink-200">
+                  <p className="text-gray-700">
+                    <span className="font-semibold">Order Number:</span> {orderNumber}
+                  </p>
+                  <p className="text-gray-700 mt-1">
+                    We've sent a confirmation email with your order details.
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Order Process */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="mb-8"
+              >
+                <h2 className="text-xl font-bold text-gray-800 mb-4">What happens next?</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Package className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">Order Processing</h3>
+                      <p className="text-sm text-gray-600">Our artisan will carefully prepare your handmade items</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                    <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Truck className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">Shipping & Delivery</h3>
+                      <p className="text-sm text-gray-600">Your order will be shipped and delivered to your address</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Star className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">Payment on Delivery</h3>
+                      <p className="text-sm text-gray-600">Pay cash when you receive and inspect your authentic crafts</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Impact Message */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 text-white rounded-xl p-6 mb-8"
+              >
+                <h3 className="text-lg font-bold mb-2">You've Made a Difference! ✨</h3>
+                <p className="text-pink-100">
+                  Your purchase directly supports traditional artisans and helps preserve India's rich cultural heritage for future generations.
+                </p>
+              </motion.div>
+
+              {/* Action Buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center"
+              >
+                <Link to={createPageUrl("Explorer")}>
+                  <Button className="bg-gradient-to-r from-orange-500 to-indigo-500 hover:from-orange-600 hover:to-indigo-600 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                    <ShoppingCart className="w-5 h-5 mr-2" />
+                    Continue Shopping
+                  </Button>
+                </Link>
+                <Link to={createPageUrl("Dashboard")}>
+                  <Button variant="outline" className="border-orange-300 hover:bg-orange-50 px-6 py-3 rounded-xl">
+                    <Home className="w-5 h-5 mr-2" />
+                    Go to Dashboard
+                  </Button>
+                </Link>
+              </motion.div>
+
+              {/* Contact Information */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2 }}
+                className="mt-8 pt-8 border-t border-orange-100 text-center"
+              >
+                <p className="text-sm text-gray-600">
+                  Questions about your order? Contact us at{' '}
+                  <a href="mailto:support@surabhi.co" className="text-orange-600 hover:underline">
+                    support@surabhi.co
+                  </a>
+                </p>
+              </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </div>
+  );
+}

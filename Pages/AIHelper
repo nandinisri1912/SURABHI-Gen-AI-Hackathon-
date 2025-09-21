@@ -1,0 +1,297 @@
+
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea"; // Not used in current code, but kept from original imports
+import { Badge } from "@/components/ui/badge"; // Not used in current code, but kept from original imports
+import { motion } from "framer-motion";
+import { 
+  Sparkles, 
+  Send, 
+  MessageCircle, 
+  Camera, 
+  TrendingUp, 
+  Heart,
+  Lightbulb,
+  Star,
+  Target
+} from "lucide-react";
+import { InvokeLLM } from "@/integrations/Core";
+import { useTranslation } from 'react-i18next'; // Assuming react-i18next for translation management
+
+export default function AIHelper() {
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language;
+
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      content: t('initialAssistantMessage'),
+      timestamp: new Date()
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSendMessage = async (message = inputMessage) => {
+    if (!message.trim()) return;
+
+    const userMessage = {
+      role: "user",
+      content: message,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage("");
+    setIsLoading(true);
+
+    try {
+      const response = await InvokeLLM({
+        prompt: `You are a helpful multilingual AI assistant for Indian artisans on a digital marketplace called Surabhi (सुरभि). 
+        You help artisans with:
+        - Writing compelling craft descriptions in multiple Indian languages
+        - Photography and presentation tips
+        - Pricing strategies based on regional markets
+        - Cultural storytelling that resonates with buyers
+        - Marketing their traditional crafts online
+        - Navigating the digital marketplace
+        - Business analytics and sales optimization
+        
+        Always respond in the same language as the user's question when possible. Be encouraging, culturally sensitive, and focus on preserving traditional crafts while helping artisans succeed online. If the user asks in Hindi, Bengali, Tamil, or Gujarati, respond in that language.
+        
+        User message: ${message}`,
+        add_context_from_internet: true
+      });
+
+      const assistantMessage = {
+        role: "assistant",
+        content: response,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      const errorMessage = {
+        role: "assistant", 
+        content: t('aiErrorMessage') || "I apologize, but I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+
+    setIsLoading(false);
+  };
+
+  const quickActions = [
+    {
+      title: t('helpWithDescription'),
+      description: "Get help writing compelling descriptions for your crafts",
+      icon: MessageCircle,
+      color: "text-orange-600",
+      prompt: currentLanguage === 'hi' 
+        ? "मुझे अपने शिल्प के लिए आकर्षक विवरण लिखने में मदद चाहिए। ग्राहकों को आकर्षित करने के लिए कौन से विवरण शामिल करने चाहिए?"
+        : "I need help writing a compelling description for my craft. Can you guide me on what details to include to attract customers?"
+    },
+    {
+      title: t('photographyTips'),
+      description: "Learn how to take better photos of your crafts",
+      icon: Camera,
+      color: "text-indigo-600", 
+      prompt: currentLanguage === 'hi'
+        ? "मेरे हस्तनिर्मित शिल्प की सुंदर तस्वीरें लेने के लिए कुछ सुझाव क्या हैं?"
+        : "What are some tips for taking beautiful photos of my handmade crafts that will attract customers?"
+    },
+    {
+      title: t('pricingStrategy'),
+      description: "Get advice on pricing your crafts competitively",
+      icon: TrendingUp,
+      color: "text-emerald-600",
+      prompt: currentLanguage === 'hi'
+        ? "मुझे अपने हस्तनिर्मित शिल्प की कीमत कैसे निर्धारित करनी चाहिए? उचित मूल्य निर्धारण के लिए कौन से कारकों पर विचार करना चाहिए?"
+        : "How should I price my handmade crafts? What factors should I consider to ensure fair pricing?"
+    },
+    {
+      title: t('storytelling'),
+      description: "Learn to tell the story behind your crafts",
+      icon: Heart,
+      color: "text-purple-600",
+      prompt: currentLanguage === 'hi'
+        ? "मैं अपने पारंपरिक शिल्प के पीछे की सांस्कृतिक कहानी और विरासत को ग्राहकों से जोड़ने के लिए कैसे प्रभावी रूप से बता सकूं?"
+        : "How can I effectively tell the cultural story and heritage behind my traditional crafts to connect with customers?"
+    }
+  ];
+
+  const handleQuickAction = (prompt) => {
+    handleSendMessage(prompt);
+  };
+
+  return (
+    <div className="p-6 lg:p-8">
+      <div className="max-w-5xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">{t('aiCraftHelperTitle')}</h1>
+            <p className="text-gray-600 text-lg">
+              {t('aiCraftHelperSubtitle')}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {quickActions.map((action, index) => (
+              <motion.div
+                key={action.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card 
+                  className="bg-white/80 backdrop-blur-sm border-orange-100 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                  onClick={() => handleQuickAction(action.prompt)}
+                >
+                  <CardContent className="p-4 text-center">
+                    <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                      <action.icon className={`w-6 h-6 ${action.color}`} />
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">{action.title}</h3>
+                    <p className="text-xs text-gray-600">{action.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <Card className="bg-white/80 backdrop-blur-sm border-orange-100 h-96 lg:h-[500px]">
+              <CardHeader className="border-b border-orange-100">
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5 text-orange-500" />
+                  {t('chatWithAIHelperTitle')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {messages.map((message, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
+                        message.role === 'user'
+                          ? 'bg-gradient-to-r from-orange-500 to-indigo-500 text-white'
+                          : 'bg-orange-50 border border-orange-100 text-gray-800'
+                      }`}>
+                        <p className="text-sm">{message.content}</p>
+                        <p className={`text-xs mt-2 ${
+                          message.role === 'user' ? 'text-orange-100' : 'text-gray-500'
+                        }`}>
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                  
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-orange-50 border border-orange-100 px-4 py-3 rounded-2xl">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-orange-100 p-4">
+                  <div className="flex gap-2">
+                    <Input
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      placeholder={t('chatInputPlaceholder')}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      className="border-orange-200 focus:border-orange-400"
+                      disabled={isLoading}
+                    />
+                    <Button
+                      onClick={() => handleSendMessage()}
+                      disabled={isLoading || !inputMessage.trim()}
+                      className="bg-gradient-to-r from-orange-500 to-indigo-500 hover:from-orange-600 hover:to-indigo-600"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-purple-600" />
+                  {t('quickTipsTitle')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  t('tip1'),
+                  t('tip2'),
+                  t('tip3'),
+                  t('tip4')
+                ].map((tip, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700">{tip}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-100">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                  <Target className="w-5 h-5 text-orange-600" />
+                  {t('todaysFocusTitle')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <Camera className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-2">{t('improvePhotosTitle')}</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {t('improvePhotosDescription')}
+                  </p>
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleQuickAction("What are some tips for taking beautiful photos of my handmade crafts that will attract customers?")}
+                    className="border-orange-300 hover:bg-orange-50"
+                  >
+                    {t('getPhotoTipsButton')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

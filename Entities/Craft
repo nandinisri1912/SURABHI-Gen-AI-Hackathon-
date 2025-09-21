@@ -1,0 +1,86 @@
+{
+  "name": "Craft",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Name of the craft piece"
+    },
+    "artisan_id": {
+      "type": "string",
+      "description": "ID of the artisan who made this"
+    },
+    "craft_type": {
+      "type": "string",
+      "enum": [
+        "pottery",
+        "textile_weaving",
+        "jewelry_making",
+        "wood_carving",
+        "metal_work",
+        "painting",
+        "embroidery",
+        "basket_weaving",
+        "leather_work",
+        "stone_carving",
+        "glass_blowing",
+        "other"
+      ],
+      "description": "Type of craft"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the piece"
+    },
+    "cultural_significance": {
+      "type": "string",
+      "description": "Cultural background and significance"
+    },
+    "materials_used": {
+      "type": "string",
+      "description": "Materials and techniques used"
+    },
+    "time_to_create": {
+      "type": "string",
+      "description": "How long it took to create"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in Indian Rupees"
+    },
+    "dimensions": {
+      "type": "string",
+      "description": "Size and dimensions"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of image URLs"
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the item is available for sale"
+    },
+    "is_custom_order": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is made to order"
+    },
+    "region_style": {
+      "type": "string",
+      "description": "Regional style or school (e.g., Rajasthani, Bengali, etc.)"
+    }
+  },
+  "required": [
+    "title",
+    "artisan_id",
+    "craft_type",
+    "description",
+    "cultural_significance",
+    "materials_used",
+    "price"
+  ]
+}

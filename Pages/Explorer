@@ -1,0 +1,308 @@
+import React, { useState, useEffect } from "react";
+import { Craft, Artisan, User } from "@/entities/Craft";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { 
+  Search,
+  MapPin,
+  Heart,
+  Star,
+  Users,
+  Palette,
+  Filter,
+  Eye,
+  Clock,
+  Award,
+  ShoppingCart,
+  Plus
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+
+import FeaturedCrafts from "../components/explorer/FeaturedCrafts";
+import RegionalShowcase from "../components/explorer/RegionalShowcase";
+import ArtisanSpotlight from "../components/explorer/ArtisanSpotlight";
+import CraftCategories from "../components/explorer/CraftCategories";
+import SampleCraftData from "../components/SampleCraftData";
+import { useLanguage } from "../components/LanguageProvider";
+
+export default function Explorer() {
+  const [crafts, setCrafts] = useState([]);
+  const [artisans, setArtisans] = useState([]);
+  const [featuredCrafts, setFeaturedCrafts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [cart, setCart] = useState([]);
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    loadData();
+    loadCart();
+  }, []);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      // Try to get current user, but don't require authentication
+      try {
+        const user = await User.me();
+        setCurrentUser(user);
+      } catch (error) {
+        // User not logged in, continue as guest
+        setCurrentUser(null);
+      }
+      
+      // Load all crafts and artisans
+      const allCrafts = await Craft.list('-created_date', 50);
+      const allArtisans = await Artisan.list('-created_date', 20);
+      
+      setCrafts(allCrafts.filter(craft => craft.is_available));
+      setArtisans(allArtisans);
+      
+      // Set featured crafts (high-priced or recent)
+      const featured = allCrafts
+        .filter(craft => craft.is_available && craft.price > 5000)
+        .slice(0, 8);
+      setFeaturedCrafts(featured);
+      
+    } catch (error) {
+      console.error("Error loading data:", error);
+    }
+    setIsLoading(false);
+  };
+
+  const loadCart = () => {
+    const savedCart = localStorage.getItem('surabhi_cart');
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+  };
+
+  const addToCart = (craft) => {
+    const newCart = [...cart, { ...craft, quantity: 1, addedAt: new Date() }];
+    setCart(newCart);
+    localStorage.setItem('surabhi_cart', JSON.stringify(newCart));
+  };
+
+  const handleLogout = async () => {
+    try {
+      await User.logout();
+      setCurrentUser(null);
+      window.location.reload(); 
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      await User.loginWithRedirect(window.location.origin + '/Explorer');
+    } catch (error) {
+      console.error("Login error:", error);
+    }
+  };
+
+  const regions = [
+    {
+      name: "Rajasthan",
+      specialties: ["Pottery", "Mirror Work", "Block Printing"],
+      craftCount: crafts.filter(c => c.region_style?.toLowerCase().includes('rajasthani')).length,
+      color: "from-orange-500 to-red-500",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80"
+    },
+    {
+      name: "West Bengal",
+      specialties: ["Kantha Embroidery", "Terracotta", "Handloom"],
+      craftCount: crafts.filter(c => c.region_style?.toLowerCase().includes('bengali')).length,
+      color: "from-emerald-500 to-teal-500",
+      image: "https://images.unsplash.com/photo-1578942408883-b8d7ee8fa5df?w=800&q=80"
+    },
+    {
+      name: "Gujarat",
+      specialties: ["Bandhani", "Kutch Work", "Metalcraft"],
+      craftCount: crafts.filter(c => c.region_style?.toLowerCase().includes('gujarati')).length,
+      color: "from-yellow-500 to-orange-500",
+      image: "https://images.unsplash.com/photo-1601208132991-08ea2df76afe?w=800&q=80"
+    },
+    {
+      name: "Kashmir",
+      specialties: ["Pashmina", "Walnut Wood", "Paper Mache"],
+      craftCount: crafts.filter(c => c.region_style?.toLowerCase().includes('kashmiri')).length,
+      color: "from-purple-500 to-indigo-500",
+      image: "https://images.unsplash.com/photo-1614813277882-4b20a94d45a7?w=800&q=80"
+    }
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="bg-white/50 rounded-2xl p-6 animate-pulse">
+              <div className="h-6 bg-orange-200 rounded-lg w-1/3 mb-4"></div>
+              <div className="h-4 bg-orange-100 rounded-lg w-2/3"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50">
+      <SampleCraftData />
+      
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-pink-600 via-orange-600 to-yellow-600 text-white">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-20">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <h1 className="text-4xl lg:text-6xl font-bold mb-6">
+              {t('discoverHeritage')}
+            </h1>
+            <p className="text-xl lg:text-2xl text-pink-100 mb-8 max-w-3xl mx-auto">
+              {t('exploreDescription')}
+            </p>
+            
+            {/* Search Bar */}
+            <div className="max-w-2xl mx-auto relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Input
+                placeholder={t('searchPlaceholder') || "Search crafts..."}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 py-4 text-lg bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-white/70 focus:bg-white/20"
+              />
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 max-w-4xl mx-auto">
+              {[
+                { label: t('activeArtisans') || "Active Artisans", value: artisans.length, icon: Users },
+                { label: t('availableCrafts') || "Available Crafts", value: crafts.length, icon: Palette },
+                { label: t('indianStates') || "Indian States", value: "28+", icon: MapPin },
+                { label: t('craftTraditions') || "Craft Traditions", value: "50+", icon: Award }
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + index * 0.1 }}
+                  className="text-center"
+                >
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <stat.icon className="w-6 h-6" />
+                  </div>
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <div className="text-pink-100 text-sm">{stat.label}</div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Auth Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mt-12 flex justify-center gap-4"
+            >
+              {currentUser ? (
+                <div className="flex items-center gap-4">
+                  <p className="text-lg text-pink-100">
+                    Welcome back, {currentUser.full_name}!
+                  </p>
+                  <Link to={createPageUrl("Cart")}>
+                    <Button variant="outline" className="border-white text-white hover:bg-white/10 relative">
+                      <ShoppingCart className="w-5 h-5 mr-2" />
+                      Cart
+                      {cart.length > 0 && (
+                        <Badge className="absolute -top-2 -right-2 bg-yellow-500 text-black">
+                          {cart.length}
+                        </Badge>
+                      )}
+                    </Button>
+                  </Link>
+                  <Button 
+                    onClick={handleLogout} 
+                    variant="outline" 
+                    className="border-white text-white hover:bg-white/10"
+                  >
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <p className="text-lg text-pink-100">
+                    Join our community to purchase authentic crafts
+                  </p>
+                  <Button 
+                    onClick={handleLogin}
+                    variant="outline" 
+                    className="border-white text-white hover:bg-white/10"
+                  >
+                    Login / Sign Up
+                  </Button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 space-y-16">
+        {/* Featured Crafts */}
+        <FeaturedCrafts crafts={featuredCrafts} onAddToCart={addToCart} currentUser={currentUser} />
+
+        {/* Regional Showcase */}
+        <RegionalShowcase regions={regions} />
+
+        {/* Craft Categories */}
+        <CraftCategories 
+          crafts={crafts} 
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          onAddToCart={addToCart}
+          currentUser={currentUser}
+        />
+
+        {/* Artisan Spotlight */}
+        <ArtisanSpotlight artisans={artisans.slice(0, 6)} />
+
+        {/* Call to Action */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 rounded-3xl p-8 lg:p-12 text-center text-white"
+        >
+          <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+            {t('supportCommunity') || "Support India's Artisan Community"}
+          </h2>
+          <p className="text-xl text-pink-100 mb-8 max-w-3xl mx-auto">
+            {t('supportDescription') || "Every purchase directly supports traditional artisans and helps preserve centuries-old craft techniques for future generations"}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to={createPageUrl("Cart")}>
+              <Button className="bg-white text-pink-600 hover:bg-pink-50 px-8 py-3 text-lg rounded-xl shadow-lg">
+                <ShoppingCart className="w-5 h-5 mr-2" />
+                {t('shopWithPurpose') || "Shop with Purpose"}
+              </Button>
+            </Link>
+            <Button variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-3 text-lg rounded-xl">
+              <Users className="w-5 h-5 mr-2" />
+              {t('meetArtisans') || "Meet the Artisans"}
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,80 @@
+import React from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, MapPin } from "lucide-react";
+
+export default function RegionalShowcase({ regions }) {
+  return (
+    <section>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-12"
+      >
+        <h2 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
+          Craft Traditions by Region
+        </h2>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          Each region of India tells its own unique story through traditional craftsmanship, 
+          passed down through generations of master artisans
+        </p>
+      </motion.div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {regions.map((region, index) => (
+          <motion.div
+            key={region.name}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.15 }}
+            className="group"
+          >
+            <Card className="bg-white/80 backdrop-blur-sm border-orange-100 hover:shadow-2xl transition-all duration-500 overflow-hidden h-full">
+              <div className="relative">
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img 
+                    src={region.image} 
+                    alt={region.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+                <div className={`absolute inset-0 bg-gradient-to-t ${region.color} opacity-60 group-hover:opacity-70 transition-opacity`}></div>
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <h3 className="text-2xl font-bold mb-2">{region.name}</h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-sm">{region.craftCount} Active Crafts</span>
+                  </div>
+                </div>
+              </div>
+              
+              <CardContent className="p-6">
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">Traditional Crafts:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {region.specialties.map((specialty) => (
+                      <Badge 
+                        key={specialty}
+                        variant="outline" 
+                        className="text-xs border-orange-200 text-orange-700"
+                      >
+                        {specialty}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <Button variant="ghost" className="w-full hover:bg-orange-50 text-orange-600 group">
+                  Explore {region.name} Crafts
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}

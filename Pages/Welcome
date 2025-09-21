@@ -1,0 +1,194 @@
+import React, { useState, useEffect } from "react";
+import { User } from "@/entities/User";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { 
+  Heart,
+  Palette,
+  ShoppingBag,
+  Users,
+  Globe,
+  Sparkles,
+  ArrowRight,
+  Star,
+  Eye,
+  LogIn
+} from "lucide-react";
+
+export default function Welcome() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authChecking, setAuthChecking] = useState(true);
+
+  // Check auth status on load to see if a role needs to be assigned
+  useEffect(() => {
+    const checkUser = async () => {
+      setAuthChecking(true);
+      try {
+        const user = await User.me();
+        setCurrentUser(user);
+
+        // If user is logged in and has a role, they might have manually navigated here.
+        // We let them stay, no automatic redirect.
+
+        // If user is logged in but has no role, check URL for role parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const roleParam = urlParams.get('role');
+        if (roleParam && !user.user_role) {
+          setIsLoading(true);
+          await User.updateMyUserData({ user_role: roleParam });
+          window.location.href = roleParam === 'artisan' ? '/Dashboard' : '/Explorer';
+        }
+
+      } catch (error) {
+        // Not logged in, which is fine for this page.
+        setCurrentUser(null);
+      }
+      setAuthChecking(false);
+    };
+    checkUser();
+  }, []);
+  
+  const handleLogin = async (role) => {
+    setIsLoading(true);
+    // After login, redirect back to Welcome page with role parameter
+    // The useEffect hook will then handle role assignment and final redirect
+    await User.loginWithRedirect(`${window.location.origin}/Welcome?role=${role}`);
+  };
+
+  const handleBrowseAsGuest = () => {
+    window.location.href = '/Explorer';
+  };
+
+  const craftHighlights = [
+    { region: "Rajasthan", craft: "Blue Pottery", color: "from-blue-500 to-indigo-600" },
+    { region: "Bengal", craft: "Kantha Work", color: "from-pink-500 to-red-500" },
+    { region: "Gujarat", craft: "Mirror Work", color: "from-yellow-500 to-orange-500" },
+    { region: "Kashmir", craft: "Pashmina", color: "from-purple-500 to-indigo-500" },
+  ];
+
+  if (authChecking || isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">{isLoading ? "Finalizing setup..." : "Loading..."}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-pink-300 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-40 h-40 bg-orange-300 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/3 w-36 h-36 bg-yellow-300 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ceab7189c425af8f4724a8/8fc117bee_SURABHI.png" 
+                alt="Surabhi Logo" 
+                className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-xl"
+              />
+              <div>
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-pink-600 via-orange-600 to-yellow-600 bg-clip-text text-transparent">
+                  सुरभि
+                </h1>
+                <p className="text-lg text-gray-600 font-medium">Heritage Marketplace</p>
+              </div>
+            </div>
+            
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
+              Discover India's Artistic Heritage
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+              Connect with master artisans, explore authentic handmade crafts, and preserve centuries-old traditions.
+            </p>
+          </motion.div>
+
+          {/* Role Selection Cards */}
+          <div className="grid lg:grid-cols-2 gap-8 mb-12">
+            {/* Artisan Card */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card className="bg-white/80 backdrop-blur-sm border-2 border-transparent hover:border-pink-200 transition-all duration-300 overflow-hidden h-full group hover:shadow-2xl">
+                <CardContent className="p-6 text-center space-y-4">
+                    <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                      <Palette className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold">For Artisans</h3>
+                    <p className="text-gray-600">Showcase your traditional crafts and reach a global audience.</p>
+                    <Button
+                      onClick={() => handleLogin('artisan')}
+                      className="w-full bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 text-white py-3 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <LogIn className="w-5 h-5 mr-2" />
+                      Artisan Login / Sign Up
+                    </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Buyer Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Card className="bg-white/80 backdrop-blur-sm border-2 border-transparent hover:border-indigo-200 transition-all duration-300 overflow-hidden h-full group hover:shadow-2xl">
+                <CardContent className="p-6 text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                    <ShoppingBag className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold">For Art Lovers</h3>
+                  <p className="text-gray-600">Explore and purchase authentic crafts directly from artisans.</p>
+                  <Button
+                    onClick={() => handleLogin('buyer')}
+                    className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white py-3 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Buyer Login / Sign Up
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+          
+          {/* Guest Browse Option */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="text-center"
+          >
+            <p className="text-gray-600 mb-4">Or, explore the marketplace as a guest</p>
+            <Button 
+              onClick={handleBrowseAsGuest}
+              variant="outline" 
+              className="border-orange-300 hover:bg-orange-50 px-8 py-3 text-lg rounded-xl"
+            >
+              <Eye className="w-5 h-5 mr-2" />
+              Browse as Guest
+            </Button>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}

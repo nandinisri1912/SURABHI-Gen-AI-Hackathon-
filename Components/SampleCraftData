@@ -1,0 +1,131 @@
+import React, { useEffect } from "react";
+import { Craft } from "@/entities/Craft";
+import { Artisan } from "@/entities/Artisan";
+
+export default function SampleCraftData() {
+  useEffect(() => {
+    createSampleCrafts();
+  }, []);
+
+  const createSampleCrafts = async () => {
+    try {
+      // Get artisans first
+      const artisans = await Artisan.list();
+      
+      if (artisans.length === 0) {
+        console.log("No artisans found, create artisans first");
+        return;
+      }
+
+      // Check if crafts already exist
+      const existingCrafts = await Craft.list();
+      if (existingCrafts.length > 0) {
+        console.log("Sample crafts already exist");
+        return;
+      }
+
+      const sampleCrafts = [
+        {
+          "title": "Hand-painted Rajasthani Blue Pottery Vase",
+          "craft_type": "pottery",
+          "description": "Exquisite blue pottery vase featuring traditional Rajasthani motifs and patterns, handcrafted using centuries-old techniques.",
+          "cultural_significance": "Blue pottery of Jaipur represents Persian influence on Indian crafts. This technique uses no clay, instead relying on quartz stone powder, powdered glass, and multani mitti.",
+          "materials_used": "Quartz stone powder, powdered glass, multani mitti, cobalt oxide for blue coloring, traditional brushes",
+          "time_to_create": "5 days",
+          "price": 2500,
+          "dimensions": "12 inches height, 6 inches diameter",
+          "region_style": "Rajasthani",
+          "is_available": true,
+          "is_custom_order": false,
+          "artisan_id": artisans.find(a => a.craft_tradition === "pottery")?.id || artisans[0].id
+        },
+        {
+          "title": "Bengali Kantha Embroidered Silk Saree",
+          "craft_type": "embroidery",
+          "description": "Beautiful silk saree with intricate Kantha embroidery work showcasing traditional Bengali storytelling through stitches.",
+          "cultural_significance": "Kantha embroidery originated in Bengal and represents rural women's creativity, often telling stories through running stitches and motifs.",
+          "materials_used": "Pure silk fabric, cotton threads, traditional needles, natural dyes",
+          "time_to_create": "3 weeks",
+          "price": 8500,
+          "dimensions": "6.5 meters length",
+          "region_style": "Bengali",
+          "is_available": true,
+          "is_custom_order": true,
+          "artisan_id": artisans.find(a => a.craft_tradition === "embroidery")?.id || artisans[1].id
+        },
+        {
+          "title": "Kashmiri Walnut Wood Carved Jewelry Box",
+          "craft_type": "wood_carving",
+          "description": "Intricately carved jewelry box from Kashmir featuring traditional chinar leaf patterns and paisley designs.",
+          "cultural_significance": "Kashmiri wood carving represents the rich artistic heritage of the valley, with designs inspired by Mughal architecture and natural beauty.",
+          "materials_used": "Premium walnut wood, traditional carving tools, natural polish",
+          "time_to_create": "10 days",
+          "price": 4200,
+          "dimensions": "8x6x4 inches",
+          "region_style": "Kashmiri",
+          "is_available": true,
+          "is_custom_order": false,
+          "artisan_id": artisans.find(a => a.craft_tradition === "wood_carving")?.id || artisans[2].id
+        },
+        {
+          "title": "Gujarati Mirror Work Wall Hanging",
+          "craft_type": "embroidery",
+          "description": "Vibrant mirror work textile art piece featuring traditional Gujarati patterns and bright colors, perfect for home decor.",
+          "cultural_significance": "Mirror work embroidery from Gujarat reflects the desert culture's love for sparkle and brightness, traditionally used to ward off evil spirits.",
+          "materials_used": "Cotton fabric, small mirrors, silk threads, sequins, traditional stitching techniques",
+          "time_to_create": "2 weeks",
+          "price": 3200,
+          "dimensions": "24x18 inches",
+          "region_style": "Gujarati",
+          "is_available": true,
+          "is_custom_order": false,
+          "artisan_id": artisans.find(a => a.location.includes("Gujarat"))?.id || artisans[3].id
+        },
+        {
+          "title": "Tamil Nadu Bronze Nataraja Sculpture",
+          "craft_type": "metal_work",
+          "description": "Traditional bronze sculpture of Lord Nataraja crafted using the ancient lost-wax casting technique from Tamil Nadu.",
+          "cultural_significance": "Bronze sculptures from Tamil Nadu represent the pinnacle of Chola art, with Nataraja symbolizing the cosmic dance of creation and destruction.",
+          "materials_used": "Bronze alloy, beeswax, clay molds, traditional furnace techniques",
+          "time_to_create": "4 weeks",
+          "price": 12500,
+          "dimensions": "14 inches height",
+          "region_style": "Tamil",
+          "is_available": true,
+          "is_custom_order": true,
+          "artisan_id": artisans.find(a => a.craft_tradition === "metal_work")?.id || artisans[4].id
+        },
+        {
+          "title": "Kanchipuram Silk Saree with Gold Zari",
+          "craft_type": "textile_weaving",
+          "description": "Premium Kanchipuram silk saree with intricate gold zari work, representing the finest tradition of South Indian textile weaving.",
+          "cultural_significance": "Kanchipuram sarees are considered auspicious and are often worn during weddings and religious ceremonies, representing prosperity and tradition.",
+          "materials_used": "Pure mulberry silk, gold zari threads, traditional handloom",
+          "time_to_create": "6 weeks",
+          "price": 15000,
+          "dimensions": "6.5 meters length",
+          "region_style": "Tamil",
+          "is_available": true,
+          "is_custom_order": true,
+          "artisan_id": artisans.find(a => a.location.includes("Kanchipuram"))?.id || artisans[5].id
+        }
+      ];
+
+      // Create crafts one by one
+      for (const craft of sampleCrafts) {
+        try {
+          await Craft.create(craft);
+          console.log(`Created craft: ${craft.title}`);
+        } catch (error) {
+          console.error(`Error creating craft ${craft.title}:`, error);
+        }
+      }
+
+      console.log("Sample crafts creation completed");
+    } catch (error) {
+      console.error("Error creating sample crafts:", error);
+    }
+  };
+
+  return null; // This component doesn't render anything
+}

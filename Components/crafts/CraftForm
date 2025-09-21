@@ -1,0 +1,331 @@
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { Save, X, Upload, Image as ImageIcon } from "lucide-react";
+import { UploadFile } from "@/integrations/Core";
+
+const craftTypes = [
+  { value: "pottery", label: "Pottery & Ceramics" },
+  { value: "textile_weaving", label: "Textile Weaving" },
+  { value: "jewelry_making", label: "Jewelry Making" },
+  { value: "wood_carving", label: "Wood Carving" },
+  { value: "metal_work", label: "Metal Work" },
+  { value: "painting", label: "Traditional Painting" },
+  { value: "embroidery", label: "Embroidery" },
+  { value: "basket_weaving", label: "Basket Weaving" },
+  { value: "leather_work", label: "Leather Work" },
+  { value: "stone_carving", label: "Stone Carving" },
+  { value: "glass_blowing", label: "Glass Blowing" },
+  { value: "other", label: "Other" }
+];
+
+export default function CraftForm({ craft, onSave, onCancel }) {
+  const [formData, setFormData] = useState(craft || {
+    title: "",
+    craft_type: "",
+    description: "",
+    cultural_significance: "",
+    materials_used: "",
+    time_to_create: "",
+    price: "",
+    dimensions: "",
+    images: [],
+    is_available: true,
+    is_custom_order: false,
+    region_style: ""
+  });
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = async (files) => {
+    setIsUploading(true);
+    try {
+      const uploadPromises = Array.from(files).map(file => UploadFile({ file }));
+      const results = await Promise.all(uploadPromises);
+      const imageUrls = results.map(result => result.file_url);
+      
+      setFormData(prev => ({
+        ...prev,
+        images: [...(prev.images || []), ...imageUrls]
+      }));
+    } catch (error) {
+      console.error("Error uploading images:", error);
+    }
+    setIsUploading(false);
+  };
+
+  const removeImage = (indexToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, index) => index !== indexToRemove)
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    
+    try {
+      await onSave({
+        ...formData,
+        price: parseFloat(formData.price) || 0
+      });
+    } catch (error) {
+      console.error("Error saving craft:", error);
+    }
+    setIsSaving(false);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-8"
+    >
+      <Card className="bg-white/90 backdrop-blur-sm border-orange-100 shadow-xl">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>{craft ? "Edit Craft" : "Add New Craft"}</span>
+            <Button variant="ghost" size="icon" onClick={onCancel}>
+              <X className="w-5 h-5" />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Basic Information */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="title">Craft Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange("title", e.target.value)}
+                  placeholder="e.g., Hand-painted Rajasthani Pot"
+                  className="mt-2"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="craft_type">Craft Type *</Label>
+                <Select value={formData.craft_type} onValueChange={(value) => handleInputChange("craft_type", value)}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select craft type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {craftTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="price">Price (₹) *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={formData.price}
+                  onChange={(e) => handleInputChange("price", e.target.value)}
+                  placeholder="2500"
+                  className="mt-2"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="dimensions">Dimensions</Label>
+                <Input
+                  id="dimensions"
+                  value={formData.dimensions}
+                  onChange={(e) => handleInputChange("dimensions", e.target.value)}
+                  placeholder="e.g., 15cm x 10cm x 8cm"
+                  className="mt-2"
+                />
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="time_to_create">Time to Create</Label>
+                <Input
+                  id="time_to_create"
+                  value={formData.time_to_create}
+                  onChange={(e) => handleInputChange("time_to_create", e.target.value)}
+                  placeholder="e.g., 3 days, 2 weeks"
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <Label htmlFor="region_style">Regional Style</Label>
+                <Input
+                  id="region_style"
+                  value={formData.region_style}
+                  onChange={(e) => handleInputChange("region_style", e.target.value)}
+                  placeholder="e.g., Rajasthani, Bengali, Kashmiri"
+                  className="mt-2"
+                />
+              </div>
+            </div>
+
+            {/* Descriptions */}
+            <div>
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleInputChange("description", e.target.value)}
+                placeholder="Describe your craft piece in detail..."
+                className="mt-2 min-h-24"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="cultural_significance">Cultural Significance *</Label>
+              <Textarea
+                id="cultural_significance"
+                value={formData.cultural_significance}
+                onChange={(e) => handleInputChange("cultural_significance", e.target.value)}
+                placeholder="Explain the cultural background, traditions, and significance of this craft..."
+                className="mt-2 min-h-24"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="materials_used">Materials & Techniques *</Label>
+              <Textarea
+                id="materials_used"
+                value={formData.materials_used}
+                onChange={(e) => handleInputChange("materials_used", e.target.value)}
+                placeholder="List the materials used and techniques employed..."
+                className="mt-2 min-h-20"
+                required
+              />
+            </div>
+
+            {/* Images */}
+            <div>
+              <Label>Craft Images</Label>
+              <div className="mt-2 space-y-4">
+                <div className="border-2 border-dashed border-orange-200 rounded-xl p-6 text-center hover:border-orange-300 transition-colors">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => e.target.files.length > 0 && handleImageUpload(e.target.files)}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById("image-upload").click()}
+                    disabled={isUploading}
+                    className="border-orange-300 hover:bg-orange-50"
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mr-2" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Images
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-sm text-gray-500 mt-2">Upload multiple images to showcase your craft</p>
+                </div>
+
+                {formData.images && formData.images.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {formData.images.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img 
+                          src={image} 
+                          alt={`Craft ${index + 1}`}
+                          className="w-full aspect-square object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Availability Options */}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="is_available"
+                  checked={formData.is_available}
+                  onChange={(e) => handleInputChange("is_available", e.target.checked)}
+                  className="rounded border-orange-300"
+                />
+                <Label htmlFor="is_available">Available for Sale</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="is_custom_order"
+                  checked={formData.is_custom_order}
+                  onChange={(e) => handleInputChange("is_custom_order", e.target.checked)}
+                  className="rounded border-orange-300"
+                />
+                <Label htmlFor="is_custom_order">Made to Order</Label>
+              </div>
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex justify-end gap-4 pt-6 border-t border-orange-100">
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSaving}
+                className="bg-gradient-to-r from-orange-500 to-indigo-500 hover:from-orange-600 hover:to-indigo-600 text-white"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    {craft ? "Update Craft" : "Save Craft"}
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}

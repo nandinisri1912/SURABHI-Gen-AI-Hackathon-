@@ -1,0 +1,282 @@
+import React, { useState, useEffect } from "react";
+import { User } from "@/entities/User";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { 
+  ShoppingCart, 
+  Trash2, 
+  Plus, 
+  Minus, 
+  ArrowLeft, 
+  CreditCard,
+  Heart,
+  MapPin
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { useLanguage } from "../components/LanguageProvider";
+
+export default function Cart() {
+  const [cart, setCart] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      // Check authentication
+      const user = await User.me();
+      setCurrentUser(user);
+      
+      // Load cart from localStorage
+      const savedCart = localStorage.getItem('surabhi_cart');
+      if (savedCart) {
+        setCart(JSON.parse(savedCart));
+      }
+    } catch (error) {
+      // User not logged in, redirect to login
+      await User.loginWithRedirect(window.location.origin + '/Cart');
+    }
+    setIsLoading(false);
+  };
+
+  const updateCart = (newCart) => {
+    setCart(newCart);
+    localStorage.setItem('surabhi_cart', JSON.stringify(newCart));
+  };
+
+  const removeFromCart = (craftId) => {
+    const newCart = cart.filter(item => item.id !== craftId);
+    updateCart(newCart);
+  };
+
+  const updateQuantity = (craftId, newQuantity) => {
+    if (newQuantity <= 0) {
+      removeFromCart(craftId);
+      return;
+    }
+    
+    const newCart = cart.map(item => 
+      item.id === craftId ? { ...item, quantity: newQuantity } : item
+    );
+    updateCart(newCart);
+  };
+
+  const calculateTotal = () => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="bg-white/50 rounded-2xl p-6 animate-pulse">
+            <div className="h-6 bg-orange-200 rounded-lg w-1/3 mb-4"></div>
+            <div className="h-4 bg-orange-100 rounded-lg w-2/3"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50">
+      <div className="p-6 lg:p-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between mb-8"
+          >
+            <div className="flex items-center gap-4">
+              <Link to={createPageUrl("Explorer")}>
+                <Button variant="outline" className="border-orange-300 hover:bg-orange-50">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Continue Shopping
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Shopping Cart</h1>
+                <p className="text-gray-600">{cart.length} items in your cart</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {cart.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16"
+            >
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-lg border border-orange-100 max-w-2xl mx-auto">
+                <ShoppingCart className="w-24 h-24 text-orange-300 mx-auto mb-6" />
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Your cart is empty</h2>
+                <p className="text-gray-600 mb-8">
+                  Discover amazing handmade crafts from talented artisans across India
+                </p>
+                <Link to={createPageUrl("Explorer")}>
+                  <Button className="bg-gradient-to-r from-orange-500 to-indigo-500 text-white px-8 py-3 text-lg rounded-xl">
+                    Start Shopping
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Cart Items */}
+              <div className="lg:col-span-2 space-y-4">
+                {cart.map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="bg-white/80 backdrop-blur-sm border-orange-100">
+                      <CardContent className="p-6">
+                        <div className="flex gap-6">
+                          <div className="flex-shrink-0">
+                            {item.images && item.images[0] ? (
+                              <img 
+                                src={item.images[0]} 
+                                alt={item.title}
+                                className="w-24 h-24 object-cover rounded-lg border border-orange-200"
+                              />
+                            ) : (
+                              <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-pink-100 rounded-lg flex items-center justify-center">
+                                <ShoppingCart className="w-8 h-8 text-orange-300" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h3 className="font-bold text-lg text-gray-800 mb-1">{item.title}</h3>
+                                <div className="flex gap-2 mb-2">
+                                  <Badge className="bg-orange-100 text-orange-700">
+                                    {item.craft_type.replace(/_/g, ' ')}
+                                  </Badge>
+                                  {item.region_style && (
+                                    <Badge variant="outline" className="border-indigo-200 text-indigo-700">
+                                      <MapPin className="w-3 h-3 mr-1" />
+                                      {item.region_style}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFromCart(item.id)}
+                                className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                  className="w-8 h-8 p-0 border-orange-300"
+                                >
+                                  <Minus className="w-3 h-3" />
+                                </Button>
+                                <span className="text-lg font-semibold text-gray-800 min-w-8 text-center">
+                                  {item.quantity}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                  className="w-8 h-8 p-0 border-orange-300"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </Button>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-gray-800">
+                                  ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  ₹{item.price.toLocaleString('en-IN')} each
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Order Summary */}
+              <div className="lg:col-span-1">
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="sticky top-8"
+                >
+                  <Card className="bg-white/90 backdrop-blur-sm border-orange-100 shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-gray-800">Order Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Subtotal ({cart.length} items)</span>
+                        <span className="font-semibold text-gray-800">
+                          ₹{calculateTotal().toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Shipping</span>
+                        <span className="font-semibold text-green-600">Free</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tax</span>
+                        <span className="text-gray-600">Calculated at checkout</span>
+                      </div>
+                      <div className="border-t border-orange-100 pt-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg font-bold text-gray-800">Total</span>
+                          <span className="text-2xl font-bold text-gray-800">
+                            ₹{calculateTotal().toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <Link to={createPageUrl("Checkout")}>
+                        <Button className="w-full bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 hover:from-pink-600 hover:via-orange-600 hover:to-yellow-600 text-white py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                          <CreditCard className="w-5 h-5 mr-2" />
+                          Proceed to Checkout
+                        </Button>
+                      </Link>
+                      
+                      <div className="text-center text-xs text-gray-500 mt-4">
+                        <p>✓ Secure checkout</p>
+                        <p>✓ Support local artisans</p>
+                        <p>✓ Authentic handmade crafts</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

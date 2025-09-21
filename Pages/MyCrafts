@@ -1,0 +1,208 @@
+
+import React, { useState, useEffect } from "react";
+import { Artisan, Craft, User } from "@/entities/all";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus, Eye, Edit, Palette, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+
+import CraftForm from "../components/crafts/CraftForm";
+import CraftGrid from "../components/crafts/CraftGrid";
+import CraftFilters from "../components/crafts/CraftFilters";
+
+export default function MyCrafts() {
+  const [artisan, setArtisan] = useState(null);
+  const [crafts, setCrafts] = useState([]);
+  const [filteredCrafts, setFilteredCrafts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingCraft, setEditingCraft] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const filterCrafts = React.useCallback(() => {
+    let filtered = crafts;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(craft => 
+        craft.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        craft.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (activeFilter !== "all") {
+      if (activeFilter === "available") {
+        filtered = filtered.filter(craft => craft.is_available);
+      } else if (activeFilter === "sold") {
+        filtered = filtered.filter(craft => !craft.is_available);
+      } else {
+        filtered = filtered.filter(craft => craft.craft_type === activeFilter);
+      }
+    }
+    
+    setFilteredCrafts(filtered);
+  }, [crafts, searchTerm, activeFilter]); // Dependencies for useCallback
+
+  useEffect(() => {
+    filterCrafts();
+  }, [filterCrafts]); // Now filterCrafts is stable due to useCallback
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const user = await User.me();
+      const artisanProfiles = await Artisan.filter({ created_by: user.email });
+      
+      if (artisanProfiles.length > 0) {
+        setArtisan(artisanProfiles[0]);
+        const artisanCrafts = await Craft.filter({ artisan_id: artisanProfiles[0].id }, "-created_date");
+        setCrafts(artisanCrafts);
+      }
+    } catch (error) {
+      console.error("Error loading data:", error);
+    }
+    setIsLoading(false);
+  };
+
+  const handleSaveCraft = async (craftData) => {
+    try {
+      if (editingCraft) {
+        await Craft.update(editingCraft.id, craftData);
+      } else {
+        await Craft.create({ ...craftData, artisan_id: artisan.id });
+      }
+      setShowForm(false);
+      setEditingCraft(null);
+      loadData();
+    } catch (error) {
+      console.error("Error saving craft:", error);
+    }
+  };
+
+  const handleEditCraft = (craft) => {
+    setEditingCraft(craft);
+    setShowForm(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white/50 rounded-2xl p-6 animate-pulse">
+              <div className="h-6 bg-orange-200 rounded-lg w-1/3 mb-4"></div>
+              <div className="h-4 bg-orange-100 rounded-lg w-2/3"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!artisan) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-lg border border-orange-100">
+            <Palette className="w-20 h-20 text-orange-400 mx-auto mb-6" />
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">Create Your Profile First</h1>
+            <p className="text-lg text-gray-600 mb-8">
+              Before showcasing your crafts, please complete your artisan profile
+            </p>
+            <Link to={createPageUrl("Profile")}>
+              <Button className="bg-gradient-to-r from-orange-500 to-indigo-500 text-white px-8 py-3 text-lg rounded-xl">
+                Create Profile
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8"
+        >
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">My Craft Collection</h1>
+            <p className="text-gray-600">Showcase your beautiful handmade creations</p>
+          </div>
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-orange-500 to-indigo-500 hover:from-orange-600 hover:to-indigo-600 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add New Craft
+          </Button>
+        </motion.div>
+
+        {showForm && (
+          <CraftForm
+            craft={editingCraft}
+            onSave={handleSaveCraft}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingCraft(null);
+            }}
+          />
+        )}
+
+        <div className="mb-6 space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              placeholder="Search your crafts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-white/80 backdrop-blur-sm border-orange-200 focus:border-orange-400"
+            />
+          </div>
+          
+          <CraftFilters 
+            activeFilter={activeFilter}
+            setActiveFilter={setActiveFilter}
+            crafts={crafts}
+          />
+        </div>
+
+        {filteredCrafts.length === 0 && !isLoading ? (
+          <div className="text-center py-16">
+            <Palette className="w-20 h-20 text-orange-300 mx-auto mb-6" />
+            <h3 className="text-2xl font-semibold text-gray-600 mb-4">
+              {searchTerm || activeFilter !== "all" ? "No crafts match your filter" : "No crafts yet"}
+            </h3>
+            <p className="text-gray-500 mb-8">
+              {searchTerm || activeFilter !== "all" 
+                ? "Try adjusting your search or filter settings" 
+                : "Start building your craft collection by adding your first piece"}
+            </p>
+            {!searchTerm && activeFilter === "all" && (
+              <Button
+                onClick={() => setShowForm(true)}
+                className="bg-gradient-to-r from-orange-500 to-indigo-500 text-white px-8 py-3 rounded-xl"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Add Your First Craft
+              </Button>
+            )}
+          </div>
+        ) : (
+          <CraftGrid crafts={filteredCrafts} onEdit={handleEditCraft} />
+        )}
+      </div>
+    </div>
+  );
+}
